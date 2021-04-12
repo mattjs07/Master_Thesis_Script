@@ -16,7 +16,7 @@ data <-  data %>%  filter( erreur1 == 0)
 
 df687 <- data %>%  filter( date == 687)
 
-LM687 <- LM_computer(dependant = "iar_cum")
+LM687 <- LM_computer(dependant = "iar_cum", df = df687)
 
 library(stargazer)
 stargazer(LM687$lm_MN, LM687$lm_DN, type = "text", column.labels = c("Money", "Duration"), omit = LM687$region)
@@ -24,7 +24,7 @@ stargazer(LM687$lm_dif2, LM687$lm_MD2, LM687$lm_MN2, LM687$lm_DN2, type = "text"
 stargazer(LM687$lm_MD3, LM687$lm_MN3, LM687$lm_DN3, type ="text", omit =LM687$region )
 stargazer(LM687$lm_MD4, LM687$lm_MN4, LM687$lm_DN4, type ="text", omit = LM687$region )
 
-
+stargazer(LM687$lm_df, LM687$lm_dif, omit = LM687$region , type = "text")
 
 
 
