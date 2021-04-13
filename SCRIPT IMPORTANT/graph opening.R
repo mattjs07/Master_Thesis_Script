@@ -26,7 +26,10 @@ d = mutate(d, t = rep(c(1,2,3), each = 3))
 
 library(ggplot2)
 
-ggplot(data = d, aes(x = t, y = ouverture)) + geom_point(aes(colour = factor(Objet))) +geom_line(aes(group = Objet))
+ggplot(data = d, aes(x = t, y = ouverture)) + geom_point(aes(colour = factor(Objet))) + 
+  scale_color_discrete(name = "Group", labels = c("Neutral","Duration","Money")) + geom_line(aes(colour = factor(Objet))) + 
+  labs(title = "Opening rate per group") +
+  theme( plot.title = element_text(hjust = 0.5))
 
 
 df2 <- filter(df, ouverture1 == 1)

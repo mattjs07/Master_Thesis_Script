@@ -93,16 +93,16 @@ Money_683 <- filter(df_683, Money == 1)
 
 Duration_683 <- filter(df_683, Duration == 1)
 
-######################################
-##### Perform T statistics test ##### 
+
 
 vars684 <- c("femme", "age", "jeune", "age_intermediaire", "senior", "lower_2nd_edu", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois", "kpjdxp",
              "PBD_inf730", "PBD_sup730", "kqcsjp", "SJR_infmean", "SJR_supmean", "anciennete", "anciennete_inf3", "anciennete_4_6" )
 
 vars683 <- c( "tx_chge", "tx_chge_jeunes","proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
 
-    #######################
-    ####Computing means####
+
+#######################
+####Computing means####
 
 Means <- function(x,y){ 
   lapply( FUN = function(y){mean(x[[y]], na.rm = TRUE)}, X = y)
@@ -125,11 +125,11 @@ table_means
 options(scipen = 100)
 table_means
 
-    ######################
+######################
 
 
-    #########################
-    #### Computing T-stat ####
+#########################
+#### Computing T-stat ####
 
 library(multiwayvcov)
 library(lmtest)
@@ -159,7 +159,8 @@ table_cl
 
 #only significant is for "proportion_de_ar", "proportion_de_ld" in N vs F
 
-    #########################
+#########################
+
 TAB <- cbind(table_means, table_cl) %>%  mutate_all(unlist) %>% mutate_all( ~round(.,7)) ; TAB
 
 row.names(TAB) <- c(vars684, vars683); TAB

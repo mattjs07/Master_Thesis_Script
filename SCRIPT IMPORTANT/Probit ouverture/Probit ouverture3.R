@@ -1,23 +1,21 @@
-library(dplyr)
 library(data.table)
 library(beepr)
 library(fastDummies)
+library(lmtest)
+library(multiwayvcov)
+library(stargazer)
+library(dplyr)
+library(ggplot2)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
-df <- fread("C:/Users/matti/Desktop/Thesis/Data/R/Data/df_new_variables_23_03.csv "); beep()
-
-###INTRO####
-df %>% group_by(objet1) %>% summarise(m = mean(ouverture1))
-############
-
-
+df <- fread("C:/Users/matti/Desktop/Thesis/Data/R/Data/df_new_variables_29_03.csv "); beep()
 df <- df %>% mutate(PBD = kpjdxp)
 df <- df %>% mutate(SJR = kqcsjp)
 df <- df %>% mutate(abs_left = PBD - anciennete, rel_left = (PBD - anciennete)/PBD, rel_anciennete = anciennete / PBD)
-df <- df %>%  filter(!is.na(ouverture1))
-#first mail sent the 31 january --> 684
-df <- df %>%  filter( date == 684)
+df <- df %>%  filter(!is.na(ouverture3))
+#second mail sent 31st of March --> 686
+df <- df %>%  filter( date == 686)
 df <-  df %>%  filter( erreur1 == 0)
 # can filter out the wrong mails sent
 
@@ -38,11 +36,11 @@ sub_Framed <- df %>% filter(Framed == 1)
 
 ### !!! Might want to include Fixed effects for region, ALE, etc !! 
 
-vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+vars <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
           "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
 
-vars <- paste(vars2, collapse = "+" )
+vars <- paste(vars, collapse = "+" )
 
 library(lmtest)
 library(multiwayvcov)
@@ -50,7 +48,7 @@ library(multiwayvcov)
 
 
 GLM.clustered <- function(variables, data){
-  g <- glm(data = data, paste( "ouverture1 ~", variables, sep = ""), family = binomial(link = "probit"))
+  g <- glm(data = data, paste( "ouverture3 ~", variables, sep = ""), family = binomial(link = "probit"))
   g <- g %>%  coeftest( vcov. = cluster.vcov( g, cluster = data$kcala, stata_fe_model_rank = TRUE))
   return(g)
 }
@@ -69,6 +67,11 @@ glm_dif <- GLM.clustered(variables = paste(vars, FE_region,"Framed", sep = "+"),
 library(stargazer)
 
 stargazer(glm_df, glm_N, glm_F, glm_dif, column.labels = c("df", "Neutral", "Framed", "F - N"), type = "text", omit = region)
+
+vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+           "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
+
 
 varsint <- paste(vars2, collapse = "*Framed +")
 varsint <- paste(varsint, "*Framed", sep = "")
@@ -104,7 +107,7 @@ glm_dif3 <- GLM.clustered(variables = paste(vars, FE_region, "Framed + Money", s
 
 glm_dif4 <- GLM.clustered(variables = paste(vars, FE_region, "Framed + Duration", sep ="+"), data = df)
 
-stargazer(glm_dif, glm_dif3, glm_dif4, type = "text", omit = region) # We observe that the entire impact of "Framed" on opening rate is driven by the negative impact of Money
+stargazer(glm_dif, glm_dif3, glm_dif4, type = "text") # We observe that the entire impact of "Framed" on opening rate is driven by the negative impact of Money
 
 #What want to investigate = are they different from one group to the other ? WHo opens in Neutral vs Money vs Duration 
 
@@ -126,6 +129,11 @@ varsintplus <- paste(vars, varsint, FE_region,sep = "+")
 
 glm_MD2 <-  GLM.clustered(variables = paste(varsintplus, "Money", sep ="+"), data = sub_MD)
 
+
+vars3 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+           "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_left")
+
 varsint <- paste(vars3, collapse = "*Duration +")
 varsint <- paste(varsint, "*Duration", sep = "")
 varsint
@@ -135,10 +143,10 @@ varsintplus <- paste(vars3, varsint, FE_region, sep = "+")
 glm_MD3 <- GLM.clustered(variables = paste(varsintplus, "Duration", sep ="+"), data = sub_MD)
 
 vars4 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-                     "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
-                    "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_anciennete")
-  
-  
+           "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_anciennete")
+
+
 varsint <- paste(vars4, collapse = "*Duration +")
 varsint <- paste(varsint, "*Duration", sep = "")
 varsint
@@ -165,11 +173,6 @@ varsintplus <- paste(vars, varsint, FE_region, sep = "+")
 
 glm_MN2 <- GLM.clustered(variables = paste(varsintplus, "Money", sep ="+"), data = sub_MN)
 
-
-vars3 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-                     "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
-                    "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_left")
-  
 varsint <- paste(vars3, collapse = "*Money +")
 varsint <- paste(varsint, "*Money", sep = "")
 varsint
@@ -229,13 +232,7 @@ glm_DN4 <- GLM.clustered(variables = paste(varsintplus, "Duration", sep ="+"), d
 
 ### anciennete has a positive impact on opening rate (10%), anciennete has a positive impact (5%)
 
-stargazer(glm_N, glm_F, glm_df,  glm_dif,glm_dif2, 
-          omit = region,
-          column.labels = c("Neutral", "Framed","All",  "All" ,"All"),
-          dep.var.labels = c("First mail opening"),
-          add.lines = list(c( "Observations",nobs)),
-          type = "text",
-          header = FALSE)
+
 stargazer(glm_MN, glm_DN, type = "text", column.labels = c("Money", "Duration"), omit = region)
 stargazer(glm_dif2, glm_MD2, glm_MN2, glm_DN2, type = "text", column.labels = c("N vs F", "M vs D", "M vs N", "D vs N"), header = TRUE, omit = region)
 stargazer(glm_MD3, glm_MN3, glm_DN3, type ="text", omit = region )
@@ -243,27 +240,6 @@ stargazer(glm_MD4, glm_MN4, glm_DN4, type ="text", omit = region )
 
 
 
-#### Looking at subset susceptible to drive results ### 
-
-df <- df %>% mutate(anciennete_sup =  ifelse(anciennete >= mean(anciennete),1,0), anciennete_inf = ifelse(anciennete < mean(anciennete), 1,0), anciennete2 = anciennete^2 )
-
-Anc_inf <- filter(df,anciennete_inf == 1)
-Anc_sup <- filter(df,anciennete_sup == 1)
-
-
-varsint <- paste(vars2, collapse = "*Framed +")
-varsint <- paste(varsint, "*Framed", sep = "")
-varsint
-
-varsintplus <- paste(vars, varsint, sep = "+")
-
-glm_inf <- glm(data = Anc_inf, paste( "ouverture1 ~", vars,"+Framed", sep = ""), family = binomial(link = "probit"))
-glm_inf <- glm_inf %>%  coeftest( vcov. = cluster.vcov( glm_inf, cluster = Anc_inf$kcala, stata_fe_model_rank = TRUE))
-glm_inf
-
-glm_sup <- glm(data = Anc_sup, paste( "ouverture1 ~",vars,"+Framed", sep = ""), family = binomial(link = "probit"))
-glm_sup <- glm_sup %>%  coeftest( vcov. = cluster.vcov( glm_sup, cluster = Anc_sup$kcala, stata_fe_model_rank = TRUE))
-glm_sup
 
 
 
@@ -276,7 +252,15 @@ glm_sup
 
 
 
-# Could build a fonction that returns a list with list(glm.clustered, P values ), so that I can feed P val to stargazer  
+
+
+
+
+
+
+
+
+
 
 
 
