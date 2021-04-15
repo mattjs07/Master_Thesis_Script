@@ -1,10 +1,16 @@
 
-GLM_computer <- function(dependant, df, add_var = NULL){
+GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   library(sjmisc)
   library(lmtest)
   library(multiwayvcov)
   library(dplyr)
   library(data.table)
+  check_var <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+                 "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+                 "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_anciennete", "rel_left")
+  if( !is.null(rm_var)){
+    if(!(rm_var %in% check_var)){ stop("Trying to remove an inexistant var")}
+  }
   
   df<- dummy_columns(df, select_columns = "region", remove_first_dummy = TRUE)
   FE_region <- names(df[, region_2:region_28])
@@ -29,6 +35,7 @@ GLM_computer <- function(dependant, df, add_var = NULL){
              "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
              "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
   if( !is.null(add_var) == 1){ vars2 <- c(vars2, add_var)}
+  if()
   
   vars <- paste(vars2, collapse = "+" )
   

@@ -1,35 +1,48 @@
-library(data.table)
-library(beepr)
-library(fastDummies)
-library(lmtest)
-library(multiwayvcov)
-library(stargazer)
-library(dplyr)
-library(ggplot2)
+library(pkgloadr)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
-df <- fread("C:/Users/matti/Desktop/Thesis/Data/R/Data/df_new_variables_29_03.csv "); beep()
+data <- fread("dataframe_final.csv", nThread = 8)
+
+
+df <- data
+
+df <- df %>%  filter(!is.na(ouverture1))
+df <- df %>%  filter( date == 684)#first mail sent the 31 january --> 684
+df <-  df %>%  filter( erreur1 == 0) # filter out the wrong mails sent
 
 ###INTRO####
 g1 <- df %>% group_by(objet1) %>% summarise(m = mean(ouverture1))
 g1 <- g1[-4,]
 g1$objet1 <- as.factor(g1$objet1)
-ggplot(g1, aes(x= objet1, y =m, fill =)) +geom_col(aes(fill = objet1)) + coord_cartesian(ylim = c(0.7,0.77)) + 
-  labs( title = "Opening rate First sending", x = "Group", y = "Opening rate") + theme( plot.title = element_text(hjust = 0.5), legend.position = 'none') +
-  scale_x_discrete(labels = c("Neutral","Duration","Money"))
+ggplot(g1, aes(x= objet1, y =m, fill =)) +geom_col(aes(fill = objet1)) + coord_cartesian(ylim = c(0.7,0.82)) + 
+  labs( title = "Opening rate First sending", subtitle = "For those who received the mail", x = "Group", y = "Opening rate") + theme( plot.title = element_text(hjust = 0.5), legend.position = 'none') +
+  theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Money"))
 ############
 
-
-df <- df %>% mutate(PBD = kpjdxp)
-df <- df %>% mutate(SJR = kqcsjp)
-df <- df %>% mutate(abs_left = PBD - anciennete, rel_left = (PBD - anciennete)/PBD, rel_anciennete = anciennete / PBD)
-df <- df %>%  filter(!is.na(ouverture1))
-df <- df %>%  filter( date == 684)#first mail sent the 31 january --> 684
-df <-  df %>%  filter( erreur1 == 0) # filter out the wrong mails sent
-
-
-source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT IMPORTANT/Probit ouverture/GLM_computerv2.R")
+source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT IMPORTANT/Probit ouverture/GLM_computerv4.R")
 
 G1 <- GLM_computer( dependant = "ouverture1", df =df)
 G1
+
+stargazer(G1$glm_df, G1$glm_N,G1$glm_F,G1$glm_dif,G1$glm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = G1$region)
+stargazer(G1$glm_dif2, G1$glm_B2,G1$glm_B3,G1$glm_B4, type = "text", omit = G1$region, column.labels = rep("All",4))
+stargazer(G1$glm_MD1, G1$glm_MD2, G1$glm_MD3,G1$glm_MD4, type ="text", omit =G1$region, column.labels = rep("D + M",4))
+
+
+
+
+
+df <- mutate(df, anciennete_norm = (anciennete - mean(df$anciennete))/ sqrt(var(df$anciennete)) )
+GLM_computer("ouverture1", df, rm_var = c("anciennete", "rel_left", "rel_anciennete"), add_var = "anciennete_norm") #here can ignore the #3 and #4 regressions
+
+df$date_odd <- as.Date(df$date_odd, "%d%b%Y")
+t = mutate(df, timeee = as.Date(anciennete, origin = date_odd)) %>% select(timeee)
+which(t != "2017-01-01")
+ 
+
+
+
+
+
+
