@@ -1,7 +1,8 @@
+library(pkgloadr)
 
+setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 #######
-data <- fread("C:/Users/matti/Desktop/Thesis/Data/R/Data/df_new_variables_29_03.csv "); beep()
-data <- data %>% mutate(PBD = kpjdxp)
+data <- fread("dataframe_finalv2.csv", nThread = 8)
 
 dd = table(data$PBD) %>% as.data.frame() %>% arrange(desc(Freq))
 dd[1,"Freq"] /sum(dd$Freq) #43% of All SPELLS have a PBD of 730 (max PBD for under 53yo, = 2ans )
@@ -18,12 +19,12 @@ library(pkgloadr)
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
 df <- fread("df_KM_PBD730.csv")
-ID <- table(df$indiv) %>% as.data.frame(); ID <- ID[,1]
+ID <- as.list(unique(df$indiv))
 
 #### Histogram ####
 time_builder <- function(x){
   if(!(x %in% ID)) stop("invalide identifier")
-  d <- filter(df, indiv == x) %>% select(indiv, date, iar, PBD)
+  d <- filter(df, indiv == x)
   n <- data.frame( t = 1:nrow(d))
   return(cbind(d,n))
 }
@@ -34,12 +35,13 @@ options(future.globals.maxSize = 800 * 1024^2)
 df730 <- future_map(ID, time_builder, .progress = TRUE) 
 df730 <- rbindlist(df730)
 
-data <- merge(df, df730)
-fwrite(data, "df730_forhist.csv")
+df730 <- merge(df, df730)
+fwrite(df730, "df730_forhist.csv")
 
-data <- data %>% filter(!is.na(iar))
-data <- data  %>% mutate(Framed = ifelse(Duration ==1 | Money == 1, 1, 0))
-ggplot(data, aes(x = t, y = iar)) + geom_col(aes(fill = as.factor(Framed)))
+df730 <- fread("df730_forhist.csv")
+
+df730 <- df730 %>% filter(!is.na(iar))
+ggplot(df730, aes(x = t, y = iar)) + geom_col(aes(fill = as.factor(Framed)))
 
 sub_MD <- data %>%  filter(Framed == 1)
 ggplot(sub_MD, aes(x = t, y = iar)) + geom_col(aes(fill = as.factor(Money))) + scale_fill_discrete(name = "Group", labels = c("Duration", "Money"))

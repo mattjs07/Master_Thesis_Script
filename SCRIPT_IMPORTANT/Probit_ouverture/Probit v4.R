@@ -2,7 +2,7 @@ library(pkgloadr)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
-data <- fread("dataframe_final.csv", nThread = 8)
+data <- fread("dataframe_finalv2.csv", nThread = 8)
 
 
 df <- data
@@ -20,21 +20,36 @@ ggplot(g1, aes(x= objet1, y =m, fill =)) +geom_col(aes(fill = objet1)) + coord_c
   theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Money"))
 ############
 
-source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT IMPORTANT/Probit ouverture/GLM_computerv4.R")
+source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT IMPORTANT/Probit_ouverture/GLM_computerv4.R")
+
+df <- fastDummies::dummy_cols(df, select_columns = "groupe")
+G1 <- GLM_computer( dependant = "ouverture1", df =df, add_var = "groupe_NET")
+G1
 
 G1 <- GLM_computer( dependant = "ouverture1", df =df)
 G1
 
+
 stargazer(G1$glm_df, G1$glm_N,G1$glm_F,G1$glm_dif,G1$glm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = G1$region)
-stargazer(G1$glm_dif2, G1$glm_B2,G1$glm_B3,G1$glm_B4, type = "text", omit = G1$region, column.labels = rep("All",4))
-stargazer(G1$glm_MD1, G1$glm_MD2, G1$glm_MD3,G1$glm_MD4, type ="text", omit =G1$region, column.labels = rep("D + M",4))
+stargazer(G1$glm_dif2, G1$glm_B2,G1$glm_MD1, G1$glm_MD2, type = "text", omit = G1$region, column.labels = rep(c("All","D + M"),each =2))
 
 
 
 
 
 df <- mutate(df, anciennete_norm = (anciennete - mean(df$anciennete))/ sqrt(var(df$anciennete)) )
-GLM_computer("ouverture1", df, rm_var = c("anciennete", "rel_left", "rel_anciennete"), add_var = "anciennete_norm") #here can ignore the #3 and #4 regressions
+G1_1 <- GLM_computer("ouverture1", df, rm_var = c("anciennete", "rel_left", "rel_anciennete"), add_var = "anciennete_norm") #here can ignore the #3 and #4 regressions
+
+
+stargazer(G1_1$glm_df, G1_1$glm_N,G1_1$glm_F,G1_1$glm_dif,G1_1$glm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = G1_1$region)
+stargazer(G1_1$glm_dif2, G1_1$glm_B2,G1_1$glm_B3,G1_1$glm_B4, type = "text", omit = G1_1$region, column.labels = rep("All",4))
+stargazer(G1_1$glm_MD1, G1_1$glm_MD2, G1_1$glm_MD3,G1_1$glm_MD4, type ="text", omit =G1_1$region, column.labels = rep("D + M",4))
+
+
+
+
+
+
 
 df$date_odd <- as.Date(df$date_odd, "%d%b%Y")
 t = mutate(df, timeee = as.Date(anciennete, origin = date_odd)) %>% select(timeee)

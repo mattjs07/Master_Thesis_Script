@@ -1,5 +1,5 @@
 
-GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
+GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL, lien = "probit"){
   library(sjmisc)
   library(lmtest)
   library(multiwayvcov)
@@ -9,36 +9,21 @@ GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   
   print("preparing for duty !")
   
-  pb <- txtProgressBar(min = 0, max = 14, style = 3)
+  pb <- txtProgressBar(min = 0, max = 10, style = 3)
   
   vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
              "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
              "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
   if( !is.null(add_var)){ vars2 <- c(vars2, add_var)}
-  
-  vars3 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-             "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
-             "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_left")
-  if( !is.null(add_var) ){ vars3 <- c(vars3, add_var)}
 
   
-  vars4 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-             "indemnisation", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
-             "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "rel_anciennete")
-  if( !is.null(add_var) ){ vars4 <- c(vars4, add_var)}
-  
   if( !is.null(rm_var)){
-    test <- !(rm_var %in% c(vars2, vars3, vars4)) %>% as.integer() %>% sum()
+    test <- !(rm_var %in% vars2) %>% as.integer() %>% sum()
     if( test > 0){ stop("Trying to remove an inexistant var")}
-      
-      else{keeper2 <- which(!(vars2 %in% rm_var))
-           keeper3 <- which(!(vars3 %in% rm_var))
-           keeper4 <- which(!(vars4 %in% rm_var))
-           
-           vars2 <- vars2[keeper2]
-           vars3 <- vars3[keeper3]
-           vars4 <- vars4[keeper4]
-      }
+    
+    else{keeper2 <- which(!(vars2 %in% rm_var))
+    vars2 <- vars2[keeper2]
+    }
   }
   
   n = length(df)
@@ -54,14 +39,12 @@ GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
     if(!is.character(dependant)) stop("dependant variable must be of type character")
     if(!is.data.frame(data)) stop("data is not of type data frame")
     if( str_contains(variables, "+") == FALSE) stop("variables must be formatted as a character vector such as 'x1 + x2 + x3' ")
-    g <- glm(data = data, paste( dependant, "~", variables, collapse = ""), family = binomial(link = "probit"))
+    g <- glm(data = data, paste( dependant, "~", variables, collapse = ""), family = binomial(link = lien))
     g <- g %>%  coeftest( vcov. = cluster.vcov( g, cluster = data$kcala, stata_fe_model_rank = TRUE))
     return(g) }
   
-    
+  
   vars2p <- paste(vars2, collapse = "+" )
-  vars3p <- paste(vars2, collapse = "+" )
-  vars4p <- paste(vars2, collapse = "+" )
   
   glm_df <-GLM.clustered(variables = paste(vars2p, FE_region, sep = "+"), data = df)
   setTxtProgressBar(pb, 1)
@@ -103,28 +86,7 @@ GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   
   glm_B2 <- GLM.clustered(variables = paste(varsintplusplus, "Money + Duration ", sep ="+"), data = df)
   setTxtProgressBar(pb, 8)
-
   
-  varsint <- paste(vars3, collapse = "*Duration +")
-  varsint <- paste(varsint, "*Duration", sep = "")
-  varsint2 <- paste(vars3, collapse = "*Money +")
-  varsint2 <- paste(varsint2, "*Money", sep = "")
-  varsintplusplus <- paste(vars3p, varsint, varsint2, FE_region, sep = "+")
-  
-  glm_B3 <- GLM.clustered(variables = paste(varsintplusplus, "Money + Duration ", sep ="+"), data = df)
-  setTxtProgressBar(pb, 9)
-  
-
-  
-  varsint <- paste(vars4, collapse = "*Duration +")
-  varsint <- paste(varsint, "*Duration", sep = "")
-  varsint2 <- paste(vars4, collapse = "*Money +")
-  varsint2 <- paste(varsint2, "*Money", sep = "")
-  varsintplusplus <- paste(vars4p, varsint, varsint2, FE_region, sep = "+")
-  
-  
-  glm_B4 <- GLM.clustered(variables = paste(varsintplusplus, "Money + Duration ", sep ="+"), data = df)
-  setTxtProgressBar(pb, 10)
   
   ############################## 
   ##### MONEY VS DURATION  ##### 
@@ -135,7 +97,7 @@ GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   
   
   glm_MD1 <- GLM.clustered(variables = paste(vars2p, FE_region, "Money", sep ="+"), data = sub_MD)
-  setTxtProgressBar(pb, 11)
+  setTxtProgressBar(pb, 9)
   
   varsint <- paste(vars2, collapse = "*Money +")
   varsint <- paste(varsint, "*Money", sep = "")
@@ -143,28 +105,11 @@ GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   
   
   glm_MD2 <-  GLM.clustered(variables = paste(varsintplus, "Money", sep ="+"), data = sub_MD)
-  setTxtProgressBar(pb, 12)
+  setTxtProgressBar(pb, 10)
   
-  varsint <- paste(vars3, collapse = "*Money+")
-  varsint <- paste(varsint, "*Money", sep = "")
-  varsintplus <- paste(vars3p, varsint, FE_region, sep = "+")
-  
-  
-  glm_MD3 <- GLM.clustered(variables = paste(varsintplus, "Money", sep ="+"), data = sub_MD)
-  setTxtProgressBar(pb, 13)
-  
-  varsint <- paste(vars4, collapse = "*Money +")
-  varsint <- paste(varsint, "*Money", sep = "")
-  varsintplus <- paste(vars4p, varsint, FE_region, sep = "+")
-  
-  
-  glm_MD4 <- GLM.clustered(variables = paste(varsintplus, "Money", sep ="+"), data = sub_MD)
-  setTxtProgressBar(pb, 14)
-  
+
   print("There you go !"); beepr::beep()
-  ### anciennete has a positive impact on opening rate (10%), anciennete has a positive impact (5%)
   
   return(list(glm_df =glm_df, glm_N = glm_N, glm_F = glm_F, glm_dif =glm_dif,glm_dif2 = glm_dif2, glm_dif3 = glm_dif3, glm_B1 = glm_B1, glm_B2 = glm_B2,
-              glm_B3 = glm_B3, glm_B4 = glm_B4, glm_MD1 =  glm_MD1, glm_MD2 =glm_MD2,glm_MD3=glm_MD3, glm_MD4 = glm_MD4, region = region))
+              glm_MD1 =  glm_MD1, glm_MD2 =glm_MD2, region = region))
 }
- 
