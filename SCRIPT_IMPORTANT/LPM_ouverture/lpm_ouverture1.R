@@ -1,4 +1,5 @@
 library(pkgloadr)
+library(latex2exp)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
@@ -7,18 +8,18 @@ data <- fread("dataframe_finalv2.csv", nThread = 8)
 
 df <- data
 
-df <- df %>%  filter(!is.na(ouverture1))
 df <- df %>%  filter( date == 684)#first mail sent the 31 january --> 684
+df <- df %>%  filter(!is.na(ouverture1))
 df <-  df %>%  filter( erreur1 == 0) # filter out the wrong mails sent
 
 ###INTRO####
 g1 <- data %>% filter( erreur1 == 0) %>% group_by(objet1) %>% summarise(ouverture = mean(ouverture1))
-g1 <- select(g1, -objet1)
 
-g1$objet <- as.factor(g1$objet)
-ggplot(g1, aes(x= objet, y =m1, fill =)) +geom_col(aes(fill = objet)) + coord_cartesian(ylim = c(0.7,0.82)) + 
+ggplot(g1, aes(x= as.factor(objet1), y = ouverture)) +geom_col(aes(fill = as.factor(objet1))) + coord_cartesian(ylim = c(0.7,0.82)) + 
   labs( title = "Opening rate First sending", subtitle = "For those who received the mail", x = "Group", y = "Opening rate") + theme( plot.title = element_text(hjust = 0.5), legend.position = 'none') +
   theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Money"))
+
+g1 <- select(g1, -objet1)
 
 g2 <- data %>% filter( erreur2 == 0) %>% group_by(objet2) %>% summarise(ouverture = mean(ouverture2))
 g2 <- select(g2, -objet2)
@@ -28,8 +29,12 @@ g3 <- select(g3, -objet3)
 
 G <- data.frame(objet = as.factor(rep(1:3, 3)), rbind(g1,g2,g3), time = rep(1:3, each = 3))
 
-ggplot(data = G, aes(x = time, y = ouverture, color = objet, )) +geom_line(size = 1)
-ggplot(data = G, aes(x = objet, y = ouverture, fill = objet)) +geom_col() + facet_wrap(~time)
+ggplot(data = G, aes(x = time, y = ouverture, color = objet, )) +geom_line(size = 1) + 
+  scale_x_discrete(name = "Sending", limits = c("1","2","3")) + labs(title = "Evolution of opening rate", subtitle = "by group and sending")+
+  ylab("Opening rate") + theme(plot.title = element_text(hjust =0.5), plot.subtitle = element_text(hjust =0.5))
+
+ggplot(data = G, aes(x = objet, y = ouverture, fill = objet)) +geom_col() + facet_wrap(~time, labeller = labeller( .cols = c("1" = "1st sending","2" = "2nd sending", "3" ="3rd sending"))) +
+  ylab("Opening rate") + xlab("") + labs(title = "Opening rates by sending by group") + theme(plot.title = element_text(hjust = 0.5)) 
 
 ############
 
@@ -60,9 +65,36 @@ stargazer(L1_2$lpm_df, L1_2$lpm_N,L1_2$lpm_F,L1_2$lpm_dif,L1_2$lpm_B1, type = "t
 stargazer(L1_2$lpm_dif2, L1_2$lpm_B2,L1_2$lpm_MD1, L1_2$lpm_MD2, type = "text", omit = L1_2$region, column.labels = rep(c("All","D + M"),each =2))
 #interactions with anciennete2 are insignificant and leads anciennete to loose significance and magnitude (normal)
 
+######## Stratification ###### 
+
+vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+           "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
+
+vars2 <- paste(vars2, collapse = "+")
+
+df_framed <- df[Framed == 1]
+df_framed$quant_anciennete = as.integer(quantcut(df_framed$anciennete, 2))
+
+for( i in 1:2){
+  g <- lm(data = df_framed[quant_anciennete == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  stargazer(g, type = "text", keep = "Duration")
+  
+}
+
+df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 2))
+
+for( i in 1:2){
+  g <- lm(data = df_framed[quant_PBD == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  stargazer(g, type = "text", keep = "Duration")
+  
+}
 
 
-## Ouverutre 3 ## 
+
+
+
+###### Ouverutre 3 ######
 
 
 df <- data

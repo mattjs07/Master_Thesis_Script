@@ -1,6 +1,5 @@
 library(pkgloadr)
-library(fun)
-library(zoo)
+library(zoo) #for function na.locf()
 
 data.table::setDTthreads(8)
 df <- fread("C:/Users/matti/Desktop/Thesis/Data/R/Data/dataframe_finalv2.csv" )
@@ -39,7 +38,7 @@ df[date <= 696, max_episode_12m := max(episode_janv, na.rm = TRUE), by = indiv]
 df[, max_episode_12m := na.locf(max_episode_12m), by = indiv]
 #
 df[date <= 708, max_episode_24m := max(episode_janv, na.rm = TRUE), by = indiv]
-df[, max_episode_24m := max(max_episode_24m, na.rm = TRUE), by = indiv]
+df[, max_episode_24m := na.locf(max_episode_24m, na.rm = TRUE), by = indiv]
 #
 df[date <= 720, max_episode_36m := max(episode_janv, na.rm = TRUE), by = indiv]
 df[, max_episode_36m := na.locf(max_episode_36m), by = indiv]
@@ -92,6 +91,11 @@ df[, av_spell_24m_trunc := na.locf(av_spell_24m_trunc), by = indiv]
 df[date <= 720, av_spell_36m_trunc := sum(unique(length_spell_trunc),na.rm = TRUE)/max_episode_36m, by =indiv  ]
 df[, av_spell_36m_trunc := na.locf(av_spell_36m_trunc), by = indiv]
 
+fwrite(df, "data_frame_abadie.csv")
+
+library(haven)
+df <- fread("data_frame_abadie.csv")
+write_dta(df, "C:/Users/matti/Desktop/Thesis/Data/R/Data/data_frame_abadie_v2.dta")
 
 
 ################### TRASH ################
