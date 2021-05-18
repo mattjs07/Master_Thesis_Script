@@ -34,6 +34,8 @@ vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_
 vars2 <- paste(vars2, collapse = "+")
 
 df_framed = df[Framed == 1 ]
+
+#Anciennete
 df_framed$quant_anciennete = as.integer(quantcut(df_framed$episode_rac_numero_mois, 3))
 
 for( i in c(1,3)){
@@ -42,7 +44,7 @@ for( i in c(1,3)){
   
 }
 
-
+# PBD
 df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 3))
 
 for( i in c(1,3)){
@@ -51,6 +53,7 @@ for( i in c(1,3)){
   
 }
 
+#Time_Left
 df_framed[, T_left := PBD - episode_rac_numero_mois*30.4]
 df_framed[, quant_T_left := as.integer(quantcut(T_left,3))]
 
@@ -60,6 +63,17 @@ for( i in c(1,3)){
   
 }
 
+#relative time left
+df_framed[, T_left_rel := (PBD - episode_rac_numero_mois*30.4)/PBD]
+df_framed[, quant_T_left_rel := as.integer(quantcut(T_left_rel,3))]
+
+for( i in c(1,3)){
+  g <- lm(data = df_framed[quant_T_left_rel == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  stargazer(g, type = "text", keep = "Duration")
+  
+}
+
+#taux de chomage
 df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
 
 for( i in c(1,3)){
@@ -67,7 +81,3 @@ for( i in c(1,3)){
   stargazer(g, type = "text", keep = "Duration")
   
 }
-
-
-
-ggplot(data= df_framed) + geom_histogram(aes(x= age)) + geom_vline(xintercept = quantile(df_framed$age, c(1/3, 2/3) ), color = "blue")
