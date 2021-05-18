@@ -12,6 +12,7 @@ df <- data
 df <- df %>%  filter( date == 684)#first mail sent the 31 january --> 684
 df <- df %>%  filter(!is.na(ouverture1))
 df <-  df %>%  filter( erreur1 == 0) # filter out the wrong mails sent
+df[, age2 := age^2]
 
 ###INTRO####
 g1 <- data %>% filter( erreur1 == 0) %>% group_by(objet1) %>% summarise(ouverture = mean(ouverture1))
@@ -44,26 +45,25 @@ source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT_IMPORTANT/LPM_ouver
 L1 <- LPM_computer( dependant = "ouverture1", df =df)
 
 
-stargazer(L1$lpm_df, L1$lpm_N,L1$lpm_F,L1$lpm_dif,L1$lpm_B1, type = "html", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1$region)
-stargazer(L1$lpm_dif2, L1$lpm_B2,L1$lpm_MD1, L1$lpm_MD2, type = "html", omit = L1$region, column.labels = rep(c("All","D + M"),each =2))
+stargazer(L1$lpm_df, L1$lpm_N,L1$lpm_F,L1$lpm_dif,L1$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1$region)
+stargazer(L1$lpm_dif2, L1$lpm_B2,L1$lpm_MD1, L1$lpm_MD2, type = "text", omit = L1$region, column.labels = rep(c("All","D + M"),each =2))
 
-# mean(df$anciennete)*-0.0003 =  -0.033. At mean anciennete : 3.3% less likely to open Money against Duration
-# An increase of one month in anciennete, decreses the probability of opening of -0.009 points. = a 0.1% decrease in the opening rate
 
-df[, age2 :=  age^2 ]
-
-# df <- mutate(df, anciennete_norm = (anciennete - mean(df$anciennete))/ sqrt(var(df$anciennete)) )
-L1_1 <- LPM_computer("ouverture1", df, add_var = c( "age2", "married", "primaire","secondaire", "cdi", "lic")) #here can ignore the #3 and #4 regressions
+L1_1 <- LPM_computer("ouverture1", df, add_var = c( "married", "primaire","secondaire", "cdi", "lic"))
 
 stargazer(L1_1$lpm_df, L1_1$lpm_N,L1_1$lpm_F,L1_1$lpm_dif,L1_1$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1_1$region)
 stargazer(L1_1$lpm_dif2, L1_1$lpm_B2,L1_1$lpm_MD1, L1_1$lpm_MD2, type = "text", omit = L1_1$region, column.labels = rep(c("All","D + M"),each =2))
-# One SD increase in anciennete : -0.012** --> the probability to open decreases of -0.012 points
 
+L1_2 <- LPM_computer("ouverture1", df, add_var = c( "married", "primaire","secondaire", "cdi", "lic"), rm_var = c("tx_chge_jeunes", "proportion_de_ar","proportion_de_ld","proportion_de_sortants",
+                                                                                                                  "nombre_de", "nombre_de_rct", "SJR")) #here can ignore the #3 and #4 regressions
+
+stargazer(L1_2$lpm_df, L1_2$lpm_N,L1_2$lpm_F,L1_2$lpm_dif,L1_2$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1_2$region)
+stargazer(L1_2$lpm_dif2, L1_2$lpm_B2,L1_2$lpm_MD1, L1_2$lpm_MD2, type = "text", omit = L1_2$region, column.labels = rep(c("All","D + M"),each =2))
 
 ######## Stratification ###### 
 
 vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-           "episode_rac_numero_mois", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "episode_rac_numero_mois", "indemnisation", "PBD",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
            "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", 
             "married", "primaire","secondaire", "cdi", "lic")
 
@@ -96,27 +96,14 @@ for( i in c(1,3)){
   
 }
 
+df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
 
-reg_femme <- lm(data = df_framed[femme == 1], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
-reg_homme <- lm(data = df_framed[femme == 0], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
-
-stargazer(reg_femme, reg_homme, column.labels = c("women", "men"), type = "text", keep = "Duration") #Whereas women are supposed to be more pessimistic, they open less duration !
+for( i in c(1,3)){
+  g <- lm(data = df_framed[quant_tx_chge == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  stargazer(g, type = "text", keep = "Duration")
   
-
-###### Ouverutre 3 ######
-
-
-df <- data
-
-df <- df %>%  filter(!is.na(ouverture1))
-df <- df %>%  filter( date == 686)#first mail sent the 31 january --> 684
-df <-  df %>%  filter( erreur3 == 0) # filter out the wrong mails sent
-
-L3 <- LPM_computer( dependant = "ouverture3", df =df)
+}
 
 
-stargazer(L3$lpm_df, L3$lpm_N,L3$lpm_F,L3$lpm_dif,L3$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L3$region)
-stargazer(L3$lpm_dif2, L3$lpm_B2,L3$lpm_MD1, L3$lpm_MD2, type = "text", omit = L3$region, column.labels = rep(c("All","D + M"),each =2))
- 
 
-
+ggplot(data= df_framed) + geom_histogram(aes(x= age)) + geom_vline(xintercept = quantile(df_framed$age, c(1/3, 2/3) ), color = "blue")
