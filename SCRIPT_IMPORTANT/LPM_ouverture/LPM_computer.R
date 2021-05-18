@@ -11,8 +11,8 @@ LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   
   pb <- txtProgressBar(min = 0, max = 10, style = 3)
   
-  vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-             "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+  vars2 <- c("episode_rac_numero_mois", "episode_rac_numero","femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+             "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
              "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
   if( !is.null(add_var)){ vars2 <- c(vars2, add_var)}
   

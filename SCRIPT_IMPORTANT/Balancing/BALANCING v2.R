@@ -6,8 +6,12 @@ library(beepr)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
-df <- fread("df_new_variables_29_03.csv"); beep()
+df <- fread("dataframe_finalv2.csv", nThread = 8); beep()
 
+
+df <- mutate(df, PBD_inf730 = ifelse(kpjdxp < 730,1,0) , PBD_sup730 = ifelse(kpjdxp >= 730,1,0),
+             SJR_infmean= ifelse(kqcsjp < mean(df$kqcsjp),1,0),SJR_supmean =ifelse(kqcsjp >= mean(df$kqcsjp),1,0),
+             anciennete_inf3 = ifelse(anciennete <= 92, 1, 0) , anciennete_4_6 = ifelse(anciennete %in% 122:183, 1,0 )) 
 
 ########################################
 ######## MAIN SAMPLES BY DATE ########
@@ -17,11 +21,6 @@ df_684 <- filter(df, date == 684)
 df_683 <- filter(df, date == 683)
 
 nrow(df_684) == nrow(df_683)
-
-table(df_684$sum1); table(df_684$sum2); table(df_684$sum3); table(df_684$sum2 == 3); table(df_684$sum3 == 3) # --> All have a mixture of 2 and 3 
-table(df_684$erreur1);table(df_684$erreur2); table(df_684$erreur3)
-
-table(df_684$main_duration);table(df_684$main_money)
 
 ########################################
 
@@ -43,6 +42,8 @@ N_D_684 <- filter(df_684, Neutral == 1 | Duration == 1)
 
 N_M_684 <- filter(df_684, Neutral == 1 | Money == 1)
 
+M_D_684 <- filter(df_684, Duration == 1 | Money == 1)
+
 #Date 683 
 T_C_683 <- filter(df_683, treated == 1 | controle == 1)
 
@@ -55,6 +56,8 @@ N_F_683 <- filter(df_683, Neutral == 1 | Framed == 1)
 N_D_683 <- filter(df_683, Neutral == 1 | Duration == 1)
 
 N_M_683 <- filter(df_683, Neutral == 1 | Money == 1)
+
+M_D_683 <- filter(df_684, Duration == 1 | Money == 1)
 
 ## Other subsamples
 
@@ -108,18 +111,17 @@ Means <- function(x,y){
   lapply( FUN = function(y){mean(x[[y]], na.rm = TRUE)}, X = y)
 }
 
-means_Neutral <- Means(x = Neutral_684, vars684) %>% append(Means(x = Neutral_683, vars683)) %>% unlist() 
-means_Framed <- Means(x = Framed_684, vars684) %>% append(Means(x = Framed_683, vars683)) %>% unlist()
-means_mailed <- Means(x = obs_mail_684, vars684) %>% append(Means(x = obs_mail_683, vars683)) %>% unlist()
-means_treated <- Means(x = treated_684, vars684) %>% append(Means(x = treated_683, vars683)) %>% unlist()
-means_control <- Means(x = controle_684, vars684) %>%  append(Means(x = controle_683, vars683)) %>%unlist()
-means_All <- Means(x = df_684, vars684) %>% append(Means(x = df_683, vars683)) %>%unlist()
-means_sup_control <- Means(x = sup_controle_684, vars684) %>%  append(Means(x = sup_controle_683, vars683)) %>%unlist()
-means_Money <- Means(x = Money_684, vars684) %>% append(Means(x = Money_683, vars683)) %>% unlist() 
-means_Duration <- Means(x = Duration_684, vars684) %>% append(Means(x = Duration_683, vars683)) %>% unlist() 
+means_Neutral <- Means(x = Neutral_684, vars684) %>% append(Means(x = Neutral_683, vars683)) 
+means_Framed <- Means(x = Framed_684, vars684) %>% append(Means(x = Framed_683, vars683)) 
+means_treated <- Means(x = treated_684, vars684) %>% append(Means(x = treated_683, vars683)) 
+means_control <- Means(x = controle_684, vars684) %>%  append(Means(x = controle_683, vars683)) 
+means_All <- Means(x = df_684, vars684) %>% append(Means(x = df_683, vars683)) 
+means_sup_control <- Means(x = sup_controle_684, vars684) %>%  append(Means(x = sup_controle_683, vars683)) 
+means_Money <- Means(x = Money_684, vars684) %>% append(Means(x = Money_683, vars683)) 
+means_Duration <- Means(x = Duration_684, vars684) %>% append(Means(x = Duration_683, vars683)) 
 
 # !!!! Last part of the table is computed using DECEMBER 2016 a.k.a 683
-table_means <- cbind(means_Money, means_Duration, means_Neutral,means_Framed  , means_All,means_treated, means_control, means_sup_control ) %>% as.data.frame()
+table_means <- cbind(means_Money, means_Duration, means_Neutral,means_Framed  , means_All,means_treated, means_control, means_sup_control ) %>% as.data.table()
 table_means
 
 options(scipen = 100)
@@ -141,27 +143,28 @@ cl.test <- function(x, y, z){
   lapply(x, W)
 }  
 
-cl_T_C <- cl.test(vars684, "treated", T_C_684) %>%  append( cl.test(vars683, "treated", T_C_683))
+cl_T_C <- cl.test(vars684, "treated", T_C_684) %>%  append( cl.test(vars683, "treated", T_C_683)) %>% unlist
 
-cl_N_F <- cl.test(vars684, "Framed", N_F_684) %>%  append( cl.test(vars683, "Framed", N_F_683))
+cl_N_F <- cl.test(vars684, "Framed", N_F_684) %>%  append( cl.test(vars683, "Framed", N_F_683)) %>% unlist
 
-cl_T_CSC <- cl.test(vars684, "treated", T_C_SC_684) %>%  append( cl.test(vars683, "treated", T_C_SC_683))
+cl_T_CSC <- cl.test(vars684, "treated", T_C_SC_684) %>%  append( cl.test(vars683, "treated", T_C_SC_683)) %>% unlist
 
-cl_T_SC <- cl.test(vars684, "treated", T_SC_684) %>%  append( cl.test(vars683, "treated", T_SC_683))
+cl_T_SC <- cl.test(vars684, "treated", T_SC_684) %>%  append( cl.test(vars683, "treated", T_SC_683)) %>% unlist
 
-cl_N_M <- cl.test(vars684, "Money", N_M_684) %>%  append( cl.test(vars683, "Money", N_M_683))
+cl_N_M <- cl.test(vars684, "Money", N_M_684) %>%  append( cl.test(vars683, "Money", N_M_683)) %>% unlist
 
-cl_N_D <- cl.test(vars684, "Duration", N_D_684) %>%  append( cl.test(vars683, "Duration", N_D_683))
+cl_N_D <- cl.test(vars684, "Duration", N_D_684) %>%  append( cl.test(vars683, "Duration", N_D_683)) %>% unlist
 
+cl_M_D <- cl.test(vars684, "Duration", M_D_684) %>%  append( cl.test(vars683, "Duration", M_D_683)) %>% unlist
 
-table_cl <- cbind(cl_N_M, cl_N_D, cl_T_C,cl_N_F, cl_T_CSC, cl_T_SC) %>%  as.data.frame()
+table_cl <- cbind(cl_M_D, cl_N_M, cl_N_D, cl_T_C,cl_N_F, cl_T_CSC, cl_T_SC) %>%  as.data.table()
 table_cl 
-
-#only significant is for "proportion_de_ar", "proportion_de_ld" in N vs F
+which(table_cl < 0.1)
 
 #########################
 
-TAB <- cbind(table_means, table_cl) %>%  mutate_all(unlist) %>% mutate_all( ~round(.,7)) ; TAB
+TAB <- cbind(table_means, table_cl) %>%  mutate_all(unlist) %>% mutate_all( ~round(.,7)) %>% as.data.table; TAB
+
 
 row.names(TAB) <- c(vars684, vars683); TAB
 

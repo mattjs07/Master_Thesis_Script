@@ -4,7 +4,7 @@ setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
 data <- fread("data_frame_abadie.csv", nThread = 8)
 data <- data[date == 684]
-data[, c("age2 ", "episode_rac_numero_mois2" )  :=  .(age^2 , episode_rac_numero_mois^2)]
+data[, age2 :=  age^2]
 
 vars <- c("episode_rac_numero_mois" ,"femme", "age", "age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
           "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes", "proportion_de_ar", "proportion_de_ld", 
@@ -16,11 +16,11 @@ stat1 <- summary(reg1)[c("r.squared","adj.r.squared")]
 reg1 <- reg1 %>%  coeftest( vcov. = cluster.vcov( reg1, cluster = subset(data, supercontrole ==1)$kcala, stata_fe_model_rank = TRUE))
 
 reg2 <- lm(data = subset(data, supercontrole ==1), paste( "av_spell_24m", "~", vars, collapse = ""))
-reg_24 = reg2
 stat2 <- summary(reg2)[c("r.squared","adj.r.squared")]
 reg2 <- reg2 %>%  coeftest( vcov. = cluster.vcov( reg2, cluster = subset(data, supercontrole ==1)$kcala, stata_fe_model_rank = TRUE))
 
 reg3 <- lm(data = subset(data, supercontrole ==1), paste( "av_spell_36m", "~", vars, collapse = ""))
+reg_36 = reg3
 stat3 <- summary(reg3)[c("r.squared","adj.r.squared")]
 reg3 <- reg3 %>%  coeftest( vcov. = cluster.vcov( reg3, cluster = subset(data, supercontrole ==1)$kcala, stata_fe_model_rank = TRUE))
 
@@ -28,9 +28,9 @@ STATS <- rbind(stat1, stat2, stat3) %>% as.data.frame()
 rsq <- c("Rsq", paste(STATS$r.squared))
 rsq.adj <- c("Rsq.adj", paste(STATS$adj.r.squared))
 
-stargazer(reg1, reg2, reg3, type = "text", column.labels = c("12m", "24m", "36m"), 
+stargazer(reg1, reg2, reg3, type = "latex", column.labels = c("12m", "24m", "36m"), 
           omit = c("Constant", "tx_chge","tx_chge_jeunes","proportion_de_ar",
-                   "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct"),
+                   "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "region"),
           add.lines = list(rsq, rsq.adj), title = "Average unemployment spell length for Supercontrol group")
 
 
@@ -39,7 +39,7 @@ covariate.labels = c("sex","age","upper 2nd education", "higher education", "las
                      "time since entry current spell","indemnisation","PBD","DRW", "married", "foreigner")
 
 
-qqplot(data[supercontrole ==1]$av_spell_24m, fitted(reg_24), col = "gray", pch = 20, main = "QQ-plot fitted against true values: average spell at 24 months", xlab = "true value", ylab = "fitted value")
+qqplot(data[supercontrole ==1]$av_spell_36m, fitted(reg_36), col = "gray", pch = 20, main = "QQ-plot fitted against true values: average spell at 36 months", xlab = "true value", ylab = "fitted value")
 curve((x), col = "blue", add = TRUE)
 
 
@@ -51,23 +51,30 @@ library(gtools)
 data_treated$quant_spell = as.integer(quantcut(data_treated$pred_av_spell, 3))
 
 
- g <-  map(1:3, function(i){lm(data = data_treated[quant_spell == i], paste( "ouverture1", "~", "Duration +" ,vars, collapse = ""))})
-  stargazer(g, type = "text")
-  
-}
+g <-  map(1:3, function(i){lm(data = data_treated[quant_spell == i], paste( "ouverture1", "~", "Duration +" ,vars, collapse = ""))})
+stargazer(g, type = "text")
 
 
 vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-           "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "episode_rac_numero_mois", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
            "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
 vars2 <- paste(vars2, collapse = "+")
-data_treated$quant_anciennete = as.integer(quantcut(data_treated$anciennete, 2))
+data_treated$quant_episode_rac_numero_mois = as.integer(quantcut(data_treated$episode_rac_numero_mois, 2))
 
 for( i in 1:2){
-  g <- lm(data = data_treated[quant_anciennete == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  g <- lm(data = data_treated[quant_episode_rac_numero_mois == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
   stargazer(g, type = "text", keep = "Duration")
   
 }
+
+######################
+
+
+dd = data[date == 684]
+dd = dd[erreur1 == 0 | is.na(erreur1)]
+table(dd$erreur1, exclude = NULL)
+
+count(dd, episode_rac_numero, treated) %>% arrange(treated)
 
 
 

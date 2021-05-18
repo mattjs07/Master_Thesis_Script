@@ -1,5 +1,6 @@
 library(pkgloadr)
 library(latex2exp)
+library(gtools)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
@@ -43,56 +44,64 @@ source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT_IMPORTANT/LPM_ouver
 L1 <- LPM_computer( dependant = "ouverture1", df =df)
 
 
-stargazer(L1$lpm_df, L1$lpm_N,L1$lpm_F,L1$lpm_dif,L1$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1$region)
-stargazer(L1$lpm_dif2, L1$lpm_B2,L1$lpm_MD1, L1$lpm_MD2, type = "text", omit = L1$region, column.labels = rep(c("All","D + M"),each =2))
+stargazer(L1$lpm_df, L1$lpm_N,L1$lpm_F,L1$lpm_dif,L1$lpm_B1, type = "html", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1$region)
+stargazer(L1$lpm_dif2, L1$lpm_B2,L1$lpm_MD1, L1$lpm_MD2, type = "html", omit = L1$region, column.labels = rep(c("All","D + M"),each =2))
 
 # mean(df$anciennete)*-0.0003 =  -0.033. At mean anciennete : 3.3% less likely to open Money against Duration
 # An increase of one month in anciennete, decreses the probability of opening of -0.009 points. = a 0.1% decrease in the opening rate
 
-df <- mutate(df, anciennete_norm = (anciennete - mean(df$anciennete))/ sqrt(var(df$anciennete)) )
-L1_1 <- LPM_computer("ouverture1", df, rm_var = "anciennete", add_var = "anciennete_norm") #here can ignore the #3 and #4 regressions
+df[, age2 :=  age^2 ]
 
+# df <- mutate(df, anciennete_norm = (anciennete - mean(df$anciennete))/ sqrt(var(df$anciennete)) )
+L1_1 <- LPM_computer("ouverture1", df, add_var = c( "age2", "married", "primaire","secondaire", "cdi", "lic")) #here can ignore the #3 and #4 regressions
 
 stargazer(L1_1$lpm_df, L1_1$lpm_N,L1_1$lpm_F,L1_1$lpm_dif,L1_1$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1_1$region)
 stargazer(L1_1$lpm_dif2, L1_1$lpm_B2,L1_1$lpm_MD1, L1_1$lpm_MD2, type = "text", omit = L1_1$region, column.labels = rep(c("All","D + M"),each =2))
 # One SD increase in anciennete : -0.012** --> the probability to open decreases of -0.012 points
 
-df <- mutate(df, anciennete2 = anciennete^2 )
-L1_2 <- LPM_computer("ouverture1", df, add_var = "anciennete2")
-
-
-stargazer(L1_2$lpm_df, L1_2$lpm_N,L1_2$lpm_F,L1_2$lpm_dif,L1_2$lpm_B1, type = "text", column.labels = c("All", "Neutral", "Framed", "All", "All"), omit = L1_2$region)
-stargazer(L1_2$lpm_dif2, L1_2$lpm_B2,L1_2$lpm_MD1, L1_2$lpm_MD2, type = "text", omit = L1_2$region, column.labels = rep(c("All","D + M"),each =2))
-#interactions with anciennete2 are insignificant and leads anciennete to loose significance and magnitude (normal)
 
 ######## Stratification ###### 
 
-vars2 <- c("femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
-           "anciennete", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
-           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct")
+vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+           "episode_rac_numero_mois", "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", 
+            "married", "primaire","secondaire", "cdi", "lic")
 
 vars2 <- paste(vars2, collapse = "+")
 
-df_framed <- df[Framed == 1]
-df_framed$quant_anciennete = as.integer(quantcut(df_framed$anciennete, 2))
+df_framed = df[Framed == 1 ]
+df_framed$quant_anciennete = as.integer(quantcut(df_framed$episode_rac_numero_mois, 3))
 
-for( i in 1:2){
+for( i in c(1,3)){
   g <- lm(data = df_framed[quant_anciennete == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
   stargazer(g, type = "text", keep = "Duration")
   
 }
 
-df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 2))
 
-for( i in 1:2){
+df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 3))
+
+for( i in c(1,3)){
   g <- lm(data = df_framed[quant_PBD == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
   stargazer(g, type = "text", keep = "Duration")
   
 }
 
+df_framed[, T_left := PBD - episode_rac_numero_mois*30.4]
+df_framed[, quant_T_left := as.integer(quantcut(T_left,3))]
+
+for( i in c(1,3)){
+  g <- lm(data = df_framed[quant_T_left == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+  stargazer(g, type = "text", keep = "Duration")
+  
+}
 
 
+reg_femme <- lm(data = df_framed[femme == 1], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
+reg_homme <- lm(data = df_framed[femme == 0], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
 
+stargazer(reg_femme, reg_homme, column.labels = c("women", "men"), type = "text", keep = "Duration") #Whereas women are supposed to be more pessimistic, they open less duration !
+  
 
 ###### Ouverutre 3 ######
 

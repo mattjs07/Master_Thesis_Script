@@ -4,6 +4,7 @@ library(pkgloadr)
 # salaire de référence / nombre de jours travailles *1.4
 #Always take 5 days a week --> en moyenne, environ 20 jours ouvrés par mois
 #Smic brut = 10,25 de l'heure. DOnc plein temps = 10.25*35*4 = 1535
+# 1535/20*1.4 = 107.45
 
 Alloc = function(SR){ SJR = SR/(20*1.4)
 if(SR < 1191.42){ SJR*0.75*20}
