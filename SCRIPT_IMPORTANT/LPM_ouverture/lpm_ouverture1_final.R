@@ -80,4 +80,4 @@ for( i in c(1,3)){
   g <- lm(data = df_framed[quant_tx_chge == i], paste( "ouverture1", "~", "Duration +",vars2, collapse = ""))
   stargazer(g, type = "text", keep = "Duration")
   
-}
+} 
