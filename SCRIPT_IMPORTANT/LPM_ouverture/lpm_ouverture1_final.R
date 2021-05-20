@@ -19,7 +19,7 @@ source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT_IMPORTANT/LPM_ouver
 L1 <- LPM_computer( dependant = "ouverture1", df =df)
 
 
-stargazer(L1$lpm_M$reg, L1$lpm_D$reg, L1$lpm_MD1$reg, L1$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
+stargazer(L1$lpm_M$reg, L1$lpm_D$reg, L1$lpm_MD1$reg, L1$lpm_MD2$reg, type = "latex", column.labels = c("Money", "Duration", "Both","Both"), 
           keep = c("episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
           add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
                            c( "Obs", L1$lpm_M$n, L1$lpm_D$n,L1$lpm_MD1$n, L1$lpm_MD2$n) ))
@@ -51,7 +51,7 @@ df_framed$quant_anciennete = as.integer(quantcut(df_framed$episode_rac_numero_mo
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_anciennete == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -61,7 +61,7 @@ df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 3))
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_PBD == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -71,7 +71,7 @@ df_framed[, quant_T_left := as.integer(quantcut(T_left,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_T_left == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -81,7 +81,7 @@ df_framed[, quant_T_left_rel := as.integer(quantcut(T_left_rel,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_T_left_rel == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -90,6 +90,7 @@ df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_tx_chge == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
+
