@@ -1,5 +1,5 @@
 
-LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
+GLM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL, lien = "probit"){
   library(sjmisc)
   library(lmtest)
   library(multiwayvcov)
@@ -22,11 +22,11 @@ LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
     }
   }
   
-  LPM.clustered <- function(variables, data){
+  GLM.clustered <- function(variables, data){
     if(!is.character(dependant)) stop("dependant variable must be of type character")
     if(!is.data.frame(data)) stop("data is not of type data frame")
     if( str_contains(variables, "+") == FALSE) stop("variables must be formatted as a character vector such as 'x1 + x2 + x3' ")
-    g <- lm(data = data, paste( dependant, "~", variables, collapse = ""))
+    g <- glm(data = data, paste( dependant, "~", variables, collapse = ""), family = binomial(link = lien))
     n <- nobs(g)
     g <- g %>%  coeftest( vcov. = cluster.vcov( g, cluster = data$kcala, stata_fe_model_rank = TRUE))
     return(list(reg =g,n =n)) }
@@ -44,23 +44,23 @@ LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   sub_Money <- df[Money == 1] 
   sub_Duration <- df[Duration == 1] 
   
-  lpm_M <- LPM.clustered(variables = vars2p, data = sub_Money)
-  lpm_D <- LPM.clustered(variables = vars2p, data = sub_Duration)
+  glm_M <- GLM.clustered(variables = vars2p, data = sub_Money)
+  glm_D <- GLM.clustered(variables = vars2p, data = sub_Duration)
   
-  lpm_MD1 <- LPM.clustered(variables = paste(vars2p, "Duration + episode_rac_numero_mois*Duration", sep ="+"), data = sub_MD)
+  glm_MD1 <- GLM.clustered(variables = paste(vars2p, "Duration + episode_rac_numero_mois*Duration", sep ="+"), data = sub_MD)
   
-
+  
   
   varsint <- paste(vars2, collapse = "*Duration +")
   varsint <- paste(varsint, "*Duration", sep = "")
   varsintplus <- paste(vars2p, varsint, sep = "+")
   
   
-  lpm_MD2 <-  LPM.clustered(variables = paste(varsintplus, "Duration", sep ="+"), data = sub_MD)
-
+  glm_MD2 <-  GLM.clustered(variables = paste(varsintplus, "Duration", sep ="+"), data = sub_MD)
+  
   
   
   beepr::beep()
   
-  return(list(lpm_M =lpm_M, lpm_D =lpm_D, lpm_MD1 =lpm_MD1, lpm_MD2 =lpm_MD2))
+  return(list(glm_M =glm_M, glm_D =glm_D, glm_MD1 =glm_MD1, glm_MD2 =glm_MD2))
 }

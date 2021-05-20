@@ -57,7 +57,8 @@ g1 <- ggplot(data = survival2) + geom_line(aes(x = t, y = A, color = Message), s
   ylab(TeX("$A_{t}$")) + theme(plot.title = element_text(hjust = 0.5)) + xlab("") + theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 g2 <- ggplot(data = survival2) + geom_line(aes(x = t, y = a, color = Message), size =1)  + ylab(TeX("$a_{t}$")) +
   theme(axis.ticks.x = element_blank(), axis.text.x = element_blank()) + xlab("")
-g3 <- ggplot(data = survival2) + geom_line(aes(x = t, y = F, color = Message), size =1)  + ylab(TeX("$F_{t}$"))
+g3 <- ggplot(data = survival2) + geom_line(aes(x = t, y = F, color = Message), size =1)  + ylab(TeX("$1 -A_{t}$"))+
+   scale_x_continuous(breaks = c(0,1, 1.414,2), labels = c("0","1",TeX(r'($\lambda$)'), "2"))  
 
 grid.arrange(g1, g2, g3)
 
