@@ -14,15 +14,41 @@ df <- df %>%  filter(!is.na(ouverture1))
 df <-  df %>%  filter( erreur1 == 0) # filter out the wrong mails sent
 df[, age2 := age^2]
 
+###INTRO####
+g1 <- df %>% group_by(objet1) %>% summarise(ouverture = mean(ouverture1))
+
+ggplot(g1, aes(x= as.factor(objet1), y = ouverture)) +geom_col(aes(fill = as.factor(objet1))) + coord_cartesian(ylim = c(0.7,0.82)) + 
+  labs( title = "Opening rate First sending", subtitle = "For those who received the mail", x = "Group", y = "Opening rate") + theme( plot.title = element_text(hjust = 0.5), legend.position = 'none') +
+  theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Money"))
+
+g1 <- select(g1, -objet1)
+
+g2 <- data %>% filter( erreur2 == 0) %>% group_by(objet2) %>% summarise(ouverture = mean(ouverture2))
+g2 <- select(g2, -objet2)
+
+g3 <- data %>% filter( erreur3 == 0) %>% group_by(objet3) %>% summarise(ouverture = mean(ouverture3))
+g3 <- select(g3, -objet3)
+
+G <- data.frame(objet = as.factor(rep(1:3, 3)), rbind(g1,g2,g3), time = rep(1:3, each = 3))
+
+ggplot(data = G, aes(x = time, y = ouverture, color = objet, )) +geom_line(size = 1) + 
+  scale_x_discrete(name = "Sending", limits = c("1","2","3")) + labs(title = "Evolution of opening rate", subtitle = "by group and sending")+
+  ylab("Opening rate") + theme(plot.title = element_text(hjust =0.5), plot.subtitle = element_text(hjust =0.5))
+
+ggplot(data = G, aes(x = objet, y = ouverture, fill = objet)) +geom_col() + facet_wrap(~time, labeller = labeller( .cols = c("1" = "1st sending","2" = "2nd sending", "3" ="3rd sending"))) +
+  ylab("Opening rate") + xlab("") + labs(title = "Opening rates by sending by group") + theme(plot.title = element_text(hjust = 0.5)) 
+
+############
+
 source("C:/Users/matti/Desktop/Thesis/Data/R/R_script/SCRIPT_IMPORTANT/LPM_ouverture/LPM_comp_final.R")
 
 L1 <- LPM_computer( dependant = "ouverture1", df =df)
 
 
-stargazer(L1$lpm_M$reg, L1$lpm_D$reg, L1$lpm_MD1$reg, L1$lpm_MD2$reg, type = "latex", column.labels = c("Money", "Duration", "Both","Both"), 
+stargazer(L1$lpm_M$reg, L1$lpm_D$reg, L1$lpm_MD1$reg, L1$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
           keep = c("episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
           add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
-                           c( "Obs", L1$lpm_M$n, L1$lpm_D$n,L1$lpm_MD1$n, L1$lpm_MD2$n) ))
+                           c( "Obs", L1$lpm_M$n, L1$lpm_D$n,L1$lpm_MD1$n, L1$lpm_MD2$n) ), report= 'vc*sp')
 
 
 ######## Stratification ###### 
