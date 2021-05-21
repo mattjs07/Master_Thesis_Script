@@ -1,6 +1,7 @@
 library(pkgloadr)
 library(latex2exp)
 library(gtools)
+library(sjmisc)
 
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
@@ -93,3 +94,29 @@ for( i in c(1,3)){
   stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
+
+
+########### Sub groups ###################
+
+sub_Money <- df[Money == 1] 
+sub_Money[, old_anc := ifelse(episode_rac_numero_mois > mean(episode_rac_numero_mois, na.rm = TRUE), 1, 0)]
+
+vars3 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
+           "old_anc", "indemnisation", "PBD",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", 
+           "married", "primaire","secondaire", "cdi", "lic")
+
+vars3 <- paste(vars3, collapse = "+")
+
+
+g <- glm.obs(data = sub_Money, dependant = "ouverture1", variables = vars3)
+stargazer(g$reg, type = "latex", keep = "old_anc", add.lines = list(c("Obs", g$n)), title = "Subset Money")
+
+
+sub_Duration <- df[Duration == 1] 
+sub_Duration[, old_anc := ifelse(episode_rac_numero_mois > mean(episode_rac_numero_mois, na.rm = TRUE), 1, 0)]
+
+
+g <- glm.obs(data = sub_Duration, dependant = "ouverture1", variables = vars3)
+stargazer(g$reg, type = "latex", keep = "old_anc", add.lines = list(c("Obs", g$n)), title = "Subset Duration")
+
