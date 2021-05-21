@@ -1,5 +1,5 @@
 
-LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
+LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL, interest = "episode_rac_numero_mois"){
   library(sjmisc)
   library(lmtest)
   library(multiwayvcov)
@@ -10,7 +10,7 @@ LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   vars2 <- c( "episode_rac_numero_mois","episode_rac_numero","femme", "age", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
              "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes", "primaire","secondaire", "cdi", "lic",
              "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", "factor(region)")
-  if( !is.null(add_var)){ vars2 <- c(vars2, add_var)}
+  if( !is.null(add_var)){ vars2 <- c(add_var,vars2)}
   
   
   if( !is.null(rm_var)){
@@ -47,7 +47,7 @@ LPM_computer <- function(dependant, df, add_var = NULL, rm_var = NULL){
   lpm_M <- LPM.clustered(variables = vars2p, data = sub_Money)
   lpm_D <- LPM.clustered(variables = vars2p, data = sub_Duration)
   
-  lpm_MD1 <- LPM.clustered(variables = paste(vars2p, "Duration + episode_rac_numero_mois*Duration", sep ="+"), data = sub_MD)
+  lpm_MD1 <- LPM.clustered(variables = paste(vars2p, paste("Duration +", interest ,"*Duration"),sep ="+"), data = sub_MD)
   
 
   

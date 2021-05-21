@@ -50,6 +50,15 @@ stargazer(L1$lpm_M$reg, L1$lpm_D$reg, L1$lpm_MD1$reg, L1$lpm_MD2$reg, type = "te
           add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
                            c( "Obs", L1$lpm_M$n, L1$lpm_D$n,L1$lpm_MD1$n, L1$lpm_MD2$n) ), report= 'vc*sp')
 
+L2 <- LPM_computer( dependant = "ouverture1", interest= "tx_chge", df =df, rm_var = c("tx_chge_jeunes",
+           "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct"))
+
+
+stargazer(L2$lpm_M$reg, L2$lpm_D$reg, L2$lpm_MD1$reg, L2$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
+          keep = c("tx_chge","tx_chge:Duration"),
+          add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
+                            c( "Obs", L2$lpm_M$n, L2$lpm_D$n,L2$lpm_MD1$n, L2$lpm_MD2$n) ), report= 'vc*sp')
+
 
 ######## Stratification ###### 
 
