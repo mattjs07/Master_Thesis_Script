@@ -18,8 +18,8 @@ df[, age2 := age^2]
 g1 <- df %>% group_by(objet1) %>% summarise(ouverture = mean(ouverture1))
 
 ggplot(g1, aes(x= as.factor(objet1), y = ouverture)) +geom_col(aes(fill = as.factor(objet1))) + coord_cartesian(ylim = c(0.7,0.82)) + 
-  labs( title = "Opening rate First sending", subtitle = "For those who received the mail", x = "Group", y = "Opening rate") + theme( plot.title = element_text(hjust = 0.5), legend.position = 'none') +
-  theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Money"))
+ labs(x = "Group", y = "Opening rate") + theme( legend.position = 'none') +
+  theme( plot.subtitle = element_text(hjust = 0.5), legend.position = 'none') + scale_x_discrete(labels = c("Neutral","Duration","Income"))
 
 g1 <- select(g1, -objet1)
 
@@ -86,7 +86,7 @@ df_framed$quant_anciennete = as.integer(quantcut(df_framed$episode_rac_numero_mo
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_anciennete == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)), ci.custom = list(confint(g$reg)))
   
 }
 

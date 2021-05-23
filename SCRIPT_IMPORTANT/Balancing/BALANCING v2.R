@@ -4,6 +4,7 @@ library(tidyr)
 library(fastDummies)
 library(beepr)
 library(ggplot2)
+library(gridExtra)
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
 df <- fread("dataframe_finalv2.csv", nThread = 8); beep()
@@ -177,11 +178,14 @@ xtable(TAB, digits = 2, )
 
 ############   HISTO PBD ##############
 
-df <- df[, experimental_group := as.factor(ifelse(supercontrole == 1, "Supercontrol", ifelse(controle == 1,"Control","Treatment")))]
+df <- df[, Group := as.factor(ifelse(supercontrole == 1, "Supercontrol", ifelse(controle == 1,"Control","Treatment")))]
 df684 = df[date == 684]
-ggplot(data = df684, aes(x = PBD )) + geom_histogram(aes(y = ..prop.., fill = experimental_group), alpha = 0.2)) 
+df684 = df684[, Subject := as.factor(ifelse(Neutral ==1, "Neutral", ifelse(Money == 1, "Income", "Duration") ))] 
+g1 <- ggplot(data = df684, aes(x = PBD, fill = Group, color = Group ) ) + geom_density( size =1, alpha =0.2)
 
+g2 <- ggplot(data = df684[!is.na(ouverture1)], aes(x = PBD, fill = Subject, color = Subject ) ) + geom_density( size =1, alpha =0.2)
 
-ggplot(data = df684, aes(x = PBD, color = as.factor(experimental_group)), alpha = 1) + geom_density(alpha = 0.2, size =1)+
-  labs(title = "Distribution of PBD per Group", color = "Group") + theme(plot.title = element_text(hjust = 0.5))
-
+g1 <- ggplotGrob(g1)
+g2 <- ggplotGrob(g2)
+g <- rbind(g1, g2, size = "first")
+grid.arrange(g)

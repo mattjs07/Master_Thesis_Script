@@ -12,9 +12,14 @@ df[, ouverture1 := as.factor(ouverture1)]
 
 
 ######### Using randForest package ##################
-fit_all <- randomForest(ouverture1 ~Duration+femme+age+upper_2nd_edu+higher_edu+contrat_moins_12mois+contrat_moins_3mois+episode_rac_numero_mois+
+fit_all <- randomForest(ouverture1 ~ Neutral+Duration+femme+age+upper_2nd_edu+higher_edu+contrat_moins_12mois+contrat_moins_3mois+episode_rac_numero_mois+
                episode_rac_numero+indemnisation+PBD+married+foreigner+primaire+secondaire+cdi+lic+tx_chge, data = df[Framed == 1], na.action = na.omit, ntree=500, mtry = 2)
-varImpPlot(fit_all)
+labels = c("Indemnisation", "Age", "Unemployment rate", "PBD", "Higher education", "Seniority", "Duration", "Foreigner", "Upper secondary education",
+           "Female","Primary Sector", "Married",  "Last contract < 12m", "Secondary Sector", "Last contract < 3m" ,"Number of current spell", "CDI", "Fired","Neutral") %>% rev()
+
+
+
+varImpPlot(fit_all, main = "", labels = labels)
 # imp <- fit$importance
 # names <- rownames(imp)
 # imp = as.data.table(imp)
@@ -34,11 +39,16 @@ varImpPlot(fit_all)
 
 fit_Duration <- randomForest(ouverture1 ~ femme+age+upper_2nd_edu+higher_edu+contrat_moins_12mois+contrat_moins_3mois+episode_rac_numero_mois+
                                episode_rac_numero+indemnisation+PBD+married+foreigner+primaire+secondaire+cdi+lic+tx_chge, data = df[Duration == 1], na.action = na.omit, ntree=500, mtry =2)
-varImpPlot(fit_Duration)
+labels = c("Age","Indemnisation" , "Unemployment rate", "PBD", "Higher education", "Seniority","Foreigner", "Female" , "Upper secondary education",
+           "Primary Sector", "Married", "Secondary Sector", "Last contract < 12m",  "Last contract < 3m" ,"Number of current spell", "CDI", "Fired") %>% rev()
+
+varImpPlot(fit_Duration, main = "", labels =labels)
 
 fit_Money <- randomForest(ouverture1 ~ femme+age+upper_2nd_edu+higher_edu+contrat_moins_12mois+contrat_moins_3mois+episode_rac_numero_mois+
                             episode_rac_numero+indemnisation+PBD+married+foreigner+primaire+secondaire+cdi+lic+tx_chge, data = df[Money== 1], na.action = na.omit, ntree=500, mtry = 2)
-varImpPlot(fit_Money)
+labels = c( "Indemnisation","Age", "Unemployment rate", "PBD", "Seniority", "Higher education",  "Upper secondary education", "Female", "Foreigner",
+            "Married", "Primary Sector", "Last contract < 12m","Secondary Sector",   "Last contract < 3m" ,"Number of current spell", "CDI", "Fired") %>% rev()
+varImpPlot(fit_Money, main = "", labels = labels)
 
 
 ############# using CARET package #####################
