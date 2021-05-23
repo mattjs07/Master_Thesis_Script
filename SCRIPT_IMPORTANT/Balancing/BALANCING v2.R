@@ -3,7 +3,7 @@ library(data.table)
 library(tidyr)
 library(fastDummies)
 library(beepr)
-
+library(ggplot2)
 setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 
 df <- fread("dataframe_finalv2.csv", nThread = 8); beep()
@@ -173,3 +173,15 @@ nrow(Money_684); nrow(Duration_684);nrow(Neutral_684); nrow(Framed_684); nrow(df
 
 library(xtable)
 xtable(TAB, digits = 2, )
+
+
+############   HISTO PBD ##############
+
+df <- df[, experimental_group := as.factor(ifelse(supercontrole == 1, "Supercontrol", ifelse(controle == 1,"Control","Treatment")))]
+df684 = df[date == 684]
+ggplot(data = df684, aes(x = PBD )) + geom_histogram(aes(y = ..prop.., fill = experimental_group), alpha = 0.2)) 
+
+
+ggplot(data = df684, aes(x = PBD, color = as.factor(experimental_group)), alpha = 1) + geom_density(alpha = 0.2, size =1)+
+  labs(title = "Distribution of PBD per Group", color = "Group") + theme(plot.title = element_text(hjust = 0.5))
+
