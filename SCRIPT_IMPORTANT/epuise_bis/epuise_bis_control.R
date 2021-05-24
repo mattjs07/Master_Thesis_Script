@@ -5,6 +5,8 @@ setwd("C:/Users/matti/Desktop/Thesis/Data/R/Data")
 data <- fread("data_frame_abadie.csv", nThread = 8)
 data <- data[date == 684]
 data[, age2 :=  age^2]
+data= data[supercontrole ==1 & PBD >= 730]
+
 
 vars <- c("episode_rac_numero_mois" ,"femme", "age", "age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
           "indemnisation", "PBD", "SJR",  "married","foreigner", "tx_chge", "tx_chge_jeunes", "proportion_de_ar", "proportion_de_ld", 

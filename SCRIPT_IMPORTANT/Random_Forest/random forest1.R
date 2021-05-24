@@ -14,13 +14,17 @@ df[, ouverture1 := as.factor(ouverture1)]
 ######### Using randForest package ##################
 fit_all <- randomForest(ouverture1 ~ Neutral+Duration+femme+age+upper_2nd_edu+higher_edu+contrat_moins_12mois+contrat_moins_3mois+episode_rac_numero_mois+
                episode_rac_numero+indemnisation+PBD+married+foreigner+primaire+secondaire+cdi+lic+tx_chge, data = df[Framed == 1], na.action = na.omit, ntree=500, mtry = 2)
-labels = c("Indemnisation", "Age", "Unemployment rate", "PBD", "Higher education", "Seniority", "Duration", "Foreigner", "Upper secondary education",
-           "Female","Primary Sector", "Married",  "Last contract < 12m", "Secondary Sector", "Last contract < 3m" ,"Number of current spell", "CDI", "Fired","Neutral") %>% rev()
+
+"tx_chge_jeunes"
+
+
+labels = c("Indemnisation", "Age", "Unemployment rate", "PBD", "Higher education", "Seniority", "Duration", "Female","Foreigner", "Upper secondary education",
+           "Primary Sector", "Married",  "Last contract < 12m", "Secondary Sector", "Last contract < 3m" ,"Number of current spell", "CDI", "Fired","Neutral") %>% rev()
 
 
 
 varImpPlot(fit_all, main = "", labels = labels)
-# imp <- fit$importance
+p# imp <- fit$importance
 # names <- rownames(imp)
 # imp = as.data.table(imp)
 # imp[ ,var := names]
