@@ -59,13 +59,31 @@ stargazer(L2$lpm_M$reg, L2$lpm_D$reg, L2$lpm_MD1$reg, L2$lpm_MD2$reg, type = "te
           add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
                             c( "Obs", L2$lpm_M$n, L2$lpm_D$n,L2$lpm_MD1$n, L2$lpm_MD2$n) ), report= 'vc*sp')
 
+df_framed = df[Framed == 1 ]
+df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
+
+L3 <- LPM_computer( dependant = "ouverture1", df =df_framed[quant_tx_chge == 1])
+
+
+stargazer(L3$lpm_M$reg, L3$lpm_D$reg, L3$lpm_MD1$reg, L3$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
+          keep = c( "Duration","episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
+          add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
+                            c( "Obs", L3$lpm_M$n, L3$lpm_D$n,L3$lpm_MD1$n, L3$lpm_MD2$n) ), report= 'vc*sp')
+
+L4 <- LPM_computer( dependant = "ouverture1", df =df_framed[quant_tx_chge == 3])
+
+
+stargazer(L4$lpm_M$reg, L4$lpm_D$reg, L4$lpm_MD1$reg, L4$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
+          keep = c("Duration","episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
+          add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
+                            c( "Obs", L4$lpm_M$n, L4$lpm_D$n,L4$lpm_MD1$n, L4$lpm_MD2$n) ), report= 'vc*sp')
 
 ######## Stratification ###### 
 
 vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
            "episode_rac_numero_mois", "indemnisation", "PBD",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
            "proportion_de_ar", "proportion_de_ld", "proportion_de_sortants", "nombre_de", "nombre_de_rct", 
-           "married", "primaire","secondaire", "cdi", "lic")
+           "married", "primaire","secondaire", "cdi", "lic", "factor(region)")
 
 vars2 <- paste(vars2, collapse = "+")
 
@@ -86,7 +104,7 @@ df_framed$quant_anciennete = as.integer(quantcut(df_framed$episode_rac_numero_mo
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_anciennete == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)), ci.custom = list(confint(g$reg)))
+  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -96,7 +114,7 @@ df_framed$quant_PBD = as.integer(quantcut(df_framed$PBD, 3))
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_PBD == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -106,7 +124,7 @@ df_framed[, quant_T_left := as.integer(quantcut(T_left,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_T_left == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -116,7 +134,7 @@ df_framed[, quant_T_left_rel := as.integer(quantcut(T_left_rel,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_T_left_rel == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "text", keep = "Duration", add.lines = list(c("Obs", g$n)))
   
 }
 
@@ -125,7 +143,7 @@ df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
 
 for( i in c(1,3)){
   g <- lpm.obs(data = df_framed[quant_tx_chge == i], dependant = "ouverture1", variables = paste("Duration +",vars2, collapse = "" ))
-  stargazer(g$reg, type = "latex", keep = "Duration", add.lines = list(c("Obs", g$n)))
+  stargazer(g$reg, type = "text", keep = c("Duration", "episode_rac_numero_mois","Duration*episode_rac_numero_mois"), add.lines = list(c("Obs", g$n)))
   
 }
 
