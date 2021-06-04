@@ -62,23 +62,45 @@ stargazer(L2$lpm_M$reg, L2$lpm_D$reg, L2$lpm_MD1$reg, L2$lpm_MD2$reg, type = "te
 df_framed = df[Framed == 1 ]
 df_framed[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
 
+sub_Money <- df[Money == 1] 
+sub_Money[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
+sub_Duration <- df[Duration == 1] 
+sub_Duration[, quant_tx_chge := as.integer(quantcut(tx_chge,3))]
+
+#INCOME SUBGROUP 
+for( i in c(1,3)){
+  g <- lpm.obs(data = sub_Money[quant_tx_chge == i], dependant = "ouverture1", variables = vars2)
+  stargazer(g$reg, type = "text", keep = c("episode_rac_numero_mois"), add.lines = list(c("Obs", g$n)))
+  
+}
+
+#DURATION SUBGROUP 
+
+for( i in c(1,3)){
+  g <- lpm.obs(data = sub_Duration[quant_tx_chge == i], dependant = "ouverture1", variables = vars2)
+  stargazer(g$reg, type = "text", keep = c("episode_rac_numero_mois"), add.lines = list(c("Obs", g$n)))
+  
+}
+
+
+#BOTH 
+
 L3 <- LPM_computer( dependant = "ouverture1", df =df_framed[quant_tx_chge == 1])
 
 
-stargazer(L3$lpm_M$reg, L3$lpm_D$reg, L3$lpm_MD1$reg, L3$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
+stargazer(L3$lpm_MD1$reg, L3$lpm_MD2$reg, type = "text", column.labels = c("Both","Both"), 
           keep = c( "Duration","episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
-          add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
-                            c( "Obs", L3$lpm_M$n, L3$lpm_D$n,L3$lpm_MD1$n, L3$lpm_MD2$n) ), report= 'vc*sp')
+          add.lines = list( c("Controls","X","X"), c("Fully Interacted","","X"),
+                            c("Obs", L3$lpm_MD1$n, L3$lpm_MD2$n) ), report= 'vc*sp')
 
 L4 <- LPM_computer( dependant = "ouverture1", df =df_framed[quant_tx_chge == 3])
 
+stargazer(L4$lpm_MD1$reg, L4$lpm_MD2$reg, type = "text", column.labels = c("Both","Both"), 
+          keep = c( "Duration","episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
+          add.lines = list( c("Controls","X","X"), c("Fully Interacted","","X"),
+                            c("Obs", L4$lpm_MD1$n, L4$lpm_MD2$n) ), report= 'vc*sp')
 
-stargazer(L4$lpm_M$reg, L4$lpm_D$reg, L4$lpm_MD1$reg, L4$lpm_MD2$reg, type = "text", column.labels = c("Money", "Duration", "Both","Both"), 
-          keep = c("Duration","episode_rac_numero_mois","episode_rac_numero_mois:Duration"),
-          add.lines = list( c("Controls","X","X","X","X"), c("Fully Interacted", "","","","X"),
-                            c( "Obs", L4$lpm_M$n, L4$lpm_D$n,L4$lpm_MD1$n, L4$lpm_MD2$n) ), report= 'vc*sp')
-
-######## Stratification ###### 
+a######## Stratification ###### 
 
 vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_12mois", "contrat_moins_3mois",
            "episode_rac_numero_mois", "indemnisation", "PBD",  "married","foreigner", "tx_chge", "tx_chge_jeunes",
@@ -86,8 +108,6 @@ vars2 <- c("femme", "age","age2", "upper_2nd_edu", "higher_edu", "contrat_moins_
            "married", "primaire","secondaire", "cdi", "lic", "factor(region)")
 
 vars2 <- paste(vars2, collapse = "+")
-
-df_framed = df[Framed == 1 ]
 
 lpm.obs <- function(dependant,variables, data){
   if(!is.character(dependant)) stop("dependant variable must be of type character")
